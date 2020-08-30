@@ -11,7 +11,20 @@
             user: {},
         };
 
-
+/* THIS IS THE makeHeaders() FUNCTION USED IN API REQUESTS */
+        const makeHeaders = () => {
+            if(state.token) {
+                return {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${state.token}`
+                }
+            } else if(!state.token) {
+                return {
+                    'Content-Type': 'application/json'
+                }
+            }
+        }
+        
 /* THIS IS THE MAIN RENDER FUNCTION */
         const render = () => {
             $('#app').empty();
@@ -103,14 +116,6 @@
         const retrieveToken = () => {
             state.token = state.token || localStorage.getItem('token');
             return state.token;
-        }
-
-
-/* THIS IS TO FETCH POSTS THAT ARE CREATED */
-        const fetchPosts = async () => {
-            const {data} = await (await fetch(`${API_URL}/posts`)).json();
-                console.log('data: ', data);
-            state.posts = data.posts;
         }
 
 
@@ -253,10 +258,11 @@
         @returns {undefined}
     */
 
-    /* This is the fecth call for creating posts */
+    /* This is the fetch call for creating posts */
+    /* [8/30] - works */
         const createPost = async post => {
             try {
-                const newPost = await fetch(`${API_URL}/posts`, {
+                const response = await fetch(`${API_URL}/posts`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -274,6 +280,7 @@
 
 
 /* THIS FUNCTION FETCHES POSTS */
+    /* [8/30]- works */
         const postFetch = async () => {
             const {data} = await (await fetch(`${API_URL}/posts`)).json();
                 console.log('data: ', data);
@@ -281,8 +288,39 @@
         }
 
 
+/* THIS IS FOR CREATING NEW MESSAGES FOR POSTS */
+        /* [8/30] - incomplete, need to figure out where to store */
+    /* These are the request parameters for messages: */
+    /** 
+        @param {string} postId - where we put message
+        @param {string} content - message content
+        @returns {undefined}
+    */
+        /* const createMessage = async (postId, content) => {
+            try {
+                const response = await fetch(`${API_URL}/posts/${post._id}/messages`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${state.token}`
+                    },
+                    body: JSON.stringify({
+                        message: {
+                            content: content,
+                        }
+                    })
+                });
+                const responseObj = await response.json();
+                    console.log('responseObj: ', responseObj.data.postId);
+                state.posts.push(responseObj.data.postId);
+            }   catch (error) {
+                console.error(error);
+            }
+        } */
+
+
 /* THIS IS FOR DELETING POSTS- SETTING isActive to false */
-        /* [8/30] - Won't work until you create posts */
+        /* [8/30] - Works */
     /* postId is the post that will be deleted */
         /** 
         @param {string} postId
@@ -306,6 +344,36 @@
             }
         }
 
+
+/* THIS IS FOR PATCHING/UPDATING YOUR POSTS */
+        /* [8/30] - works */
+    /* These are the parameter requests for editPost function : */
+    /**
+     * @param {Object} post - post details
+     * @param {string} post.title - title of the card
+     * @param {string} post.description  - description of item
+     * @param {string} post.price - price of item
+     * @param {string} post.location - location of item
+     * @param {boolean} post.willDeliver - whether or not item will be delivered
+     * @returns {undefined}
+     */
+
+     const postEdit = async (post) => {
+         try {
+            const response = await fetch(`${API_URL}/posts/${post._id}`, {
+                method: 'PATCH',
+                headers: makeHeaders(),
+                body: JSON.stringify({post})
+            });
+            const data = await response.json();
+                console.log('data: ', data);
+          } catch(error) {
+            console.error(error);
+        }
+     }
+
+
+
 /* THIS IS A WRAPPER FOR ALL OF OUR FUNCTIONS (A 'BOOTSTRAP') */
 
         /* What else do I have to put in here? */
@@ -317,3 +385,4 @@
             renderForms();
         }
         allTheFuncs();
+
