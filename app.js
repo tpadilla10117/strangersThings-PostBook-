@@ -27,7 +27,7 @@
         
 /* THIS IS THE MAIN RENDER FUNCTION */
         const render = () => {
-            $('#app').empty();
+            /* $('#app').empty(); */
             if(state.responseObj && state.responseObj.data) {
                 $('#app').append(state.responseObj.data.message)
             } else if(state.responseObj && state.responseObj.error) {
@@ -93,22 +93,131 @@
                 console.log('click');
                 loginModal();
             })
+
+            /* THIS WORKS BUT NEED TO STYLE & ADJUST SYNTAX (CLASSES, IDS, ETC) */
+            /* [8/30] ALSO NEED TO SETUP FOR REGISTER */
+            function landingLoginModal() {
+                $('#loginLanding').empty();
+                const loginModal = $(`<div class="modal fade modal-dialog modal-dialog-centered" id="loginModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                  <div class="modal-content">
+                    <div class="modal-header">
+                      <h5 class="modal-title" id="exampleModalLabel">Log in To Post Book</h5>
+                      <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                      </button>
+                    </div>
+                    <div class="modal-body">
+                        <form id=loginForm>
+                            <div class="form-group">
+                                <label for="loginSubmission">UserName</label>
+                                <input type="text" required class="form-control" id="loginSubmission" aria-describedby="textHelp" minlength="5" maxlength="15" placeholder="UserName">
+                                <small id="textHelp" class="form-text text-muted">Enter Your UserName</small>
+                                </div>
+                            <div class="form-group">
+                                <label for="loginPassword">Password</label>
+                                <input type="password" required class="form-control" id="loginPassword" minlength="3" maxlength="12" placeholder="Password"><small id="textHelp" class="form-text text-muted">Enter Your Password</small>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Submit</button>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                      <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    </div>
+                  </div>
+                </div>
+              </div>`);
+
+              $('#loginLanding').append(loginModal);
+            }
+
+            $('#landing-login').click(function(event) {
+                event.preventDefault();
+                console.log('click');
+                landingLoginModal();
+            })
+
+            $('#app').on('submit', '#loginForm', function(event) {
+                event.preventDefault();
+                const loginSubmission = $('#loginSubmission').val();
+                const loginPassword = $('#loginPassword').val();
+                console.log('loginSubmission :',loginSubmission, 'loginPassword: ', loginPassword);
+                loginUser(loginSubmission, loginPassword);
+                window.location.href = '/index.html';
+                /* if(state.token) {
+                    loginUser(loginSubmission, loginPassword);
+                } else if(!state.token) {
+                    alert('Please Enter a Valid UserName & Password');
+                } */
+            })
+
+        /* This is for the landing pg ' Register ' button */
+            function landingRegisterModal() {
+                $('#registerLanding').empty();
+                const registerModal = $(`<div class="modal fade modal-dialog modal-dialog-centered" id="registerModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                  <div class="modal-content">
+                    <div class="modal-header">
+                      <h5 class="modal-title" id="exampleModalLabel">Sign Up</h5>
+                      <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                      </button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="registerForm">
+                            <div class="form-group">
+                                <label for="registerSubmission">UserName</label>
+                                <input type="text" required class="form-control" id="registerSubmission" aria-describedby="textHelp" minlength="5" maxlength="15" placeholder="Create a Username">
+                                <small id="textHelp" class="form-text text-muted">Create a UserName</small>
+                                </div>
+                            <div class="form-group">
+                                <label for="registerPassword">Password</label>
+                                <input type="password" required class="form-control" id="registerPassword" minlength="3" maxlength="12" placeholder="Create a Password"><small id="textHelp" class="form-text text-muted">Create a Password</small>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Submit</button>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                      <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    </div>
+                  </div>
+                </div>
+              </div>`);
+
+              $('#registerLanding').append(registerModal);
+            }
+
+            $('#landing-register').click(function(event) {
+                event.preventDefault();
+                console.log('click');
+                landingRegisterModal();
+            })
+
+            $('#app').on('submit', '#registerForm', function(event) {
+                event.preventDefault();
+                const registerSubmission = $('#registerSubmission').val();
+                const registerPassword = $('#registerPassword').val();
+                console.log('registerSubmission :',registerSubmission, 'loginPassword: ', registerPassword);
+                registerUser(registerSubmission, registerPassword);
+            })
+
+
         }
 
      
 /* THIS IS TO PLACE A TOKEN IN localStorage AND/OR SAVE IT TO state.token */
 /* [8/26-Not setting token in localStorage...though seemingly fixed it] */
-        const placeToken = (token) => {
+        const placeToken = () => {
             //if we have a defined token
+            /* state.token = token;
             if(!token) {
                 return;
-            }
+            } */
             //set the token as 'token' in localStorage
-            localStorage.setItem('token', token);
+            localStorage.setItem('token', state.token);
             //save it to state.token
-            state.token = token;
         }
-        placeToken(state.token);
+        
 
 
 /* THIS IS TO GET A TOKEN FROM localStorage OR STATE */
@@ -194,6 +303,8 @@
                     console.log('responseObj.data.token: ', responseObj.data.token);
                 /* We can set the token in local storage for auto login */
                 state.responseObj = responseObj;
+                placeToken();
+                retrieveToken();
                 /* render(); */
             } catch(error) {
                 console.error(error)
@@ -381,8 +492,10 @@
             placeToken();
             retrieveToken();
                 console.log('state.token: ', state.token);
-            render();
+            
             renderForms();
+            render();
+            
         }
         allTheFuncs();
 
