@@ -501,6 +501,7 @@
                 const responseObj = await response.json();
                 /* We can set the token in local storage for auto login */
                 /* set up conditional to aleart user in UI if login is successful or not */
+               
                 placeToken(responseObj?.data?.token);
                 render();
                 renderForms();
@@ -634,7 +635,11 @@
                     <h6 class="card-subtitle mb-2 text-muted">Price: ${post.price}</h6>
                     <h6 class="card-subtitle mb-2 text-muted">Location: ${post.location}</h6>
                     <p class="card-text"> Description: ${post.description}</p>
-                    <button type="button" class="btn btn-success">Message Author</button>
+                    ${state.token ? '<button type="button" class="btn btn-info">Edit</button>' : ''}
+                    </div>
+                    ${state.token ? '<button type="button" class="btn btn-danger">Delete</button>' : ''}
+                    </div>
+
                 </div>
             </div>`)
 
@@ -651,7 +656,10 @@
                         <h6 class="card-subtitle mb-2 text-muted">Location: ${post.location}</h6>
                         <p class="card-text"> Description: ${post.description}</p>
                         <button type="button" class="btn btn-success">Message Author</button>
-                    </div>
+                        ${post.isAuthor ? '<button type="button" id="editCard" class="btn btn-info">Edit</button>' : ''}
+                        </div>
+                        ${post.isAuthor ? '<button type="button" id="deleteCard" class="btn btn-danger">Delete</button>' : ''}
+                        </div>
                 </div>`)
     }
 
@@ -669,11 +677,14 @@
 /* THIS FUNCTION FETCHES POSTS */
     /* [8/30]- works */
         const postFetch = async () => {
-            const {data} = await (await fetch(`${API_URL}/posts`)).json();
-                /* console.log('data: ', data); */
+            const {data} = await (await fetch(`${API_URL}/posts`, {
+                headers: makeHeaders()
+            })).json();
+                console.log('data: ', data);
             state.posts = data.posts;
         }
 
+       
     
 /* THIS IS FOR CREATING NEW MESSAGES FOR POSTS */
         /* [8/30] - incomplete, need to figure out where to store */
@@ -760,33 +771,14 @@
         }
 
 /* THIS IS FOR THE DELETE BUTTON */
-/* append it to #cards if post.author.isAuthor === true */
-/* Need to loop through state.posts[] -> that array contains all the posts */
-        // function renderDeleteBtn () {
-        //     const deleteBtn = $(`<button type="button" class="btn btn-danger">Delete</button>`);
-        //     for (var i = 0; i < state.posts.length; i++) {
-        //         if(state.posts[i].isAuthor === true) {
-        //             $('#postCards').append(deleteBtn);
-        //         }
-        //         /* console.log(state.posts[i]._id) */
-        //     }
-        //     /* const innerCard = posts;
-        //     console.log(innerCard); */
-        // }
-      
-
-        /* const renderEveryPost = () => {
-            const appendPosts = $('#postCards');
-            postFetch();
-            state.posts.forEach(post => {
-                appendPosts.append(renderPosts(post))
-            })
-        }
- */
-        $('#app2').on('click', '.btn-danger', function() {
+     
+        $('#app2').on('click', '#deleteCard', function() {
             const theCard = $(this);
             console.log('clicked delete');
-            
+            for(var i = 0; i < state.posts.length; i++) {
+                const theCardId = state.posts[i]._id;
+                /* deletePost(); */
+            }
         })
 
     
@@ -816,6 +808,59 @@
             console.error(error);
             }
         }
+
+/* THIS IS TO RENDER A MODAL FOR EDITING POSTS */
+        const editModalRender = () => {
+            $(`<div class="modal fade modal-dialog modal-dialog-centered" id="editModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Create a Listing</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="editModalForm">
+                        <div class="form-group">
+                            <label for="editItem">Item</label>
+                            <input type="text" class="form-control" id="editItem" aria-describedby="textHelp" placeholder="What Would You Like to Sell?">
+                        </div>
+                        <div class="input-group mb-3">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text">$</span>
+                            </div>
+                            <input type="text" id="editPrice" class="form-control" aria-label="Amount (to the nearest dollar)" placeholder="Amount (to the nearest dollar)">
+                            <div class="input-group-append">
+                                <span class="input-group-text">.00</span>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="editLocation">Location</label>
+                            <input type="text" class="form-control" id="editLocation" placeholder="Where Are You Located?">
+                        </div>
+                        <div class="form-group">
+                            <label for="editDescription">Description</label>
+                            <small id="textHelp" class="form-text text-muted">Describe What it is You Are Selling</small>
+                            <textarea class="form-control" id="editDescription" rows="3"></textarea>
+                        </div>
+                        <button type="submit" id="editCardSubmit" class="btn btn-primary">Submit</button>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+                </div>
+            </div>
+            </div>`)
+        }
+
+/* THIS IS FOR THE ON CLICK OF AN EDIT BUTTON */
+        $('#app2').on('click', '#editCard', function() {
+            const theCard = $(this);
+            console.log('clicked edit');
+            editModalRender();
+        }) 
     
 
 /* THIS IS FOR FILTERING THROUGH THE POSTS */
@@ -848,11 +893,10 @@
             navRender();
             renderForms();
             renderEveryPost();
-            /* renderDeleteBtn(); */
             } catch(error) {
                 console.error(error);
             }
-            /* app.append(renderPost()); */
+
             
         }
         allTheFuncs();
