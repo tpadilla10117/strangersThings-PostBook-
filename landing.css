@@ -11,3 +11,19 @@ body {
     font-family: "Fjalla One", Arial;
   }
 
+#app {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+
+.overlay {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+
+#side-pane {
+  display: grid;
+  grid-template-columns: 1fr 1fr
+}
+  
+
