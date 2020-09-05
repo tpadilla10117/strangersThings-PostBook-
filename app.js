@@ -27,20 +27,29 @@
             
 /* THIS IS THE MAIN RENDER FUNCTION */
         const render = () => {
-            /* $('#app').empty(); */
-            if(state.responseObj && state.responseObj.data) {
-                $('#app').append(state.responseObj.data.message)
-            } else if(state.responseObj && state.responseObj.error) {
-                $('#app').append(state.responseObj.error.message);
-            }
-            if(state.token) {
-                $('#app').append('you are logged in');
-            }
-        }
+            const app = $('#app');
+            app.empty();
+            app.append($(`
+            <aside id="side-pane"></aside>
+            <section class="overlay">
+            <h1 class="animate__animated animate__wobble">Post Book</h1>
+                <button type="button" id="landing-login" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#loginModal">Login</button>
+
+                <button type="button" id="landing-register" class="btn btn-secondary btn-lg" data-toggle="modal" data-target="#registerModal">Register</button>
+
+                <button type="button" id="guest-btn" class="btn btn-secondary btn-lg">Click to View Listings</button>
+
+                <div id="loginLanding"></div>
+                <div id="registerLanding"></div>
+        </section>
+        `))
+        };
+        render();
 
 /* THIS IS TO RENDER NAV MENUS FOR AUTHETICATED OR UNAUTHENTICATED USERS */
         const navRender = () => {
-            const authenticNav = $(`<nav id="mainNav" class="navbar navbar-expand-lg navbar-light bg-light">
+            /* let currentUser = ; */
+            const authenticNav = $(`<nav id="mainNav2" class="navbar navbar-expand-lg navbar-light bg-light">
 
             <a class="navbar-brand" href="#">Navbar</a>
             <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
@@ -50,11 +59,18 @@
             <div class="collapse navbar-collapse" id="navbarSupportedContent">
               <ul class="navbar-nav mr-auto">
                 <li class="nav-item active">
-                  <a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>
+                  
+                    <a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>
+                  
                 </li>
                 <li class="nav-item">
-                  <div id="createPost-btn" data-toggle="modal" data-target="#createPostModal">
+                  <div id="createPost-btn" data-toggle="modal" data-target="#createPostModal2">
                     <a class="nav-link" href="#">Create Post</a>
+                  </div>
+                </li>
+                <li class="nav-item">
+                  <div id="messages-btn" data-toggle="modal" data-target="#">
+                    <a class="nav-link" href="#">Messages</a>
                   </div>
                 </li>
                 <li class="nav-item">
@@ -64,8 +80,8 @@
                 </li>        
               </ul>
               
-              <form class="form-inline my-2 my-lg-0">
-                <input class="form-control mr-sm-2" type="search" placeholder="Search Posts" aria-label="Search">
+              <form class="search-form form-inline my-2 my-lg-0">
+                <input id="searchPosts" class="form-control mr-sm-2" type="search" placeholder="Search Posts" aria-label="Search">
                 <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
               </form>
             </div>
@@ -83,39 +99,44 @@
             <div class="collapse navbar-collapse" id="navbarSupportedContent">
               <ul class="navbar-nav mr-auto">
                 <li class="nav-item active">
-                  <a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>
+                    
+                        <a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>
+                   
                 </li>
                 <li class="nav-item">
-                  <div id="mainRegister-btn" data-toggle="modal" data-target="#">
+                  <div id="mainRegister-btn" data-toggle="modal" data-target="#registerModalMain">
                     <a class="nav-link" href="#">Register</a>
                   </div>
                 </li>   
                 <li class="nav-item">
-                  <div id="mainLogin-btn" data-toggle="modal" data-target="#">
+                  <div id="mainLogin-btn" data-toggle="modal" data-target="#mainLoginModal">
                     <a class="nav-link" href="#">Login</a>
                   </div>
                 </li>    
               </ul>
               
-              <form class="form-inline my-2 my-lg-0">
-                <input class="form-control mr-sm-2" type="search" placeholder="Search Posts" aria-label="Search">
+              <form class="search-form form-inline my-2 my-lg-0">
+                <input id="searchPosts" class="form-control mr-sm-2" type="search" placeholder="Search Posts" aria-label="Search">
                 <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
               </form>
             </div>
     
             </nav>`)
             
-            /* [9/3] -> Need to add functionaloty to home, login, and register buttons */
+            /* [9/3] -> Need to add functionaloty to home button */
             if(state.token) {
               $('#appNav').append(authenticNav);
             } else if (state.token === '' || state.token === null) {
                 $('#appNav').append(unauthenticNav);
             }
+
+           /*  $('.home-btn').click(function () {
+                console.log('home')    
+            }) */
+            
         }
 
-
 /* THIS IS A RENDER FOR THE Forms*/
-/* [8/29] - MODAL not properly working */
         const renderForms = () => {
 
             /* THIS WORKS BUT NEED TO STYLE & ADJUST SYNTAX (CLASSES, IDS, ETC) */
@@ -154,7 +175,7 @@
 
                 $('#loginLanding').append(loginModal);
             }
-
+            
             $('#landing-login').click(function(event) {
                 event.preventDefault();
                 console.log('click');
@@ -165,8 +186,56 @@
                 event.preventDefault();
                 const loginSubmission = $('#loginSubmission').val();
                 const loginPassword = $('#loginPassword').val();
-                console.log('loginSubmission :',loginSubmission, 'loginPassword: ', loginPassword);
                 loginUser(loginSubmission, loginPassword);
+            })
+
+        /* This is for unauthenticated users */
+            function mainLoginModal() {
+                $('#mainLogin').empty();
+                const mainLoginModal = $(`<div class="modal fade modal-dialog modal-dialog-centered" id="mainLoginModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">Log in To Post Book</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <form id=mainLoginForm>
+                            <div class="form-group">
+                                <label for="loginSubmissionMain">UserName</label>
+                                <input type="text" required class="form-control" id="loginSubmissionMain" aria-describedby="textHelp" minlength="5" maxlength="15" placeholder="UserName">
+                                <small id="textHelp" class="form-text text-muted">Enter Your UserName</small>
+                                </div>
+                            <div class="form-group">
+                                <label for="loginPasswordMain">Password</label>
+                                <input type="password" required class="form-control" id="loginPasswordMain" minlength="3" maxlength="12" placeholder="Password"><small id="textHelp" class="form-text text-muted">Enter Your Password</small>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Submit</button>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    </div>
+                    </div>
+                </div>
+                </div>`)
+
+                $('#mainLogin').append(mainLoginModal);
+            }
+
+            $('#mainLogin-btn').click(function(event) {
+                event.preventDefault();
+                console.log('click');
+                mainLoginModal();
+            })
+      
+            $('#app2').on('submit', '#mainLoginForm', function(event) {
+                event.preventDefault();
+                const loginSubmissionMain = $('#loginSubmissionMain').val();
+                const loginPasswordMain = $('#loginPasswordMain').val();
+                loginUser(loginSubmissionMain, loginPasswordMain);
             })
 
         /* This is for the landing pg ' Register ' button */
@@ -215,15 +284,65 @@
                 event.preventDefault();
                 const registerSubmission = $('#registerSubmission').val();
                 const registerPassword = $('#registerPassword').val();
-                console.log('registerSubmission :',registerSubmission, 'loginPassword: ', registerPassword);
                 registerUser(registerSubmission, registerPassword);
             })
+
+        /* This is the register for unauthenticated users */
+        function mainRegisterModal() {
+            $('#mainRegister').empty();
+            const mainRegisterContainer = $(`<div class="modal fade modal-dialog modal-dialog-centered" id="registerModalMain" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Sign Up</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="registerFormMain">
+                        <div class="form-group">
+                            <label for="registerSubmissionMain">UserName</label>
+                            <input type="text" required class="form-control" id="registerSubmissionMain" aria-describedby="textHelp" minlength="5" maxlength="15" placeholder="Create a Username">
+                            <small id="textHelp" class="form-text text-muted">Create a UserName</small>
+                            </div>
+                        <div class="form-group">
+                            <label for="registerPasswordMain">Password</label>
+                            <input type="password" required class="form-control" id="registerPasswordMain" minlength="3" maxlength="12" placeholder="Create a Password"><small id="textHelp" class="form-text text-muted">Create a Password</small>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Submit</button>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+                </div>
+            </div>
+            </div>`);
+
+            $('#mainRegister').append(mainRegisterContainer);
+
+        }
+
+        $('#mainRegister-btn').click(function(event) {
+            event.preventDefault();
+            console.log('click');
+            mainRegisterModal();
+        })
+
+        $('#app2').on('submit', '#registerFormMain', function(event) {
+            event.preventDefault();
+            const registerSubmissionMain = $('#registerSubmissionMain').val();
+            const registerPasswordMain = $('#registerPasswordMain').val();
+            registerUser(registerSubmissionMain, registerPasswordMain);
+        })
+
 
         /* This is for the Main Page ' Create Post ' button */
         /* 9/1 - Need to read values from the form*/
         function createPostModal() {
             $('.postForm').empty();
-            const postModal = $(`<div class="modal fade modal-dialog modal-dialog-centered" id="createPostModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            const postModal = $(`<div class="modal fade modal-dialog modal-dialog-centered" id="createPostModal2" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
             <div class="modal-dialog">
                 <div class="modal-content">
                 <div class="modal-header">
@@ -272,18 +391,26 @@
         $('#createPost-btn').on('click', function(event) {
             event.preventDefault();
             console.log('clicked create post');
+            /* $('#createPostModal2').removeClass("goodbyeModal"); */
             createPostModal();
         })
 
-        /*9/2 -> How do I render what's submitted from the form to the card... also need to make this so it only works if logged in, & can only see in UI if logged in*/
-        $('#app').on('submit', '#createPostForm', function(event) {
+        $('#parentNav').on('submit', '#createPostForm', async function(event) {
             event.preventDefault();
-            const itemSubmission = $('#itemSubmission').val();
-            const priceSubmission = $('#priceSubmission').val();
-            const locationSubmission = $('#locationSubmission').val();
-            const descripSubmission = $('#exampleFormControlTextarea1').val();
-            console.log('itemSubmission :',itemSubmission, 'priceSubmission: ', priceSubmission, 'locationSubmission: ', locationSubmission, 'descripSubmission: ', descripSubmission);
-            /* registerUser(registerSubmission, registerPassword) */;
+            const post = {}
+            post.title = $('#itemSubmission').val();
+            post.price = $('#priceSubmission').val();
+            post.location = $('#locationSubmission').val();
+            post.description = $('#exampleFormControlTextarea1').val();
+            $('#createPostModal2').addClass("goodbyeModal");
+            /* const theNewPost = {location: locationSubmission, title: itemSubmission, price: priceSubmission, description: descripSubmission}; */
+            $('#postCards').empty();
+           /*  $('.modal-backdrop').remove(); */
+            await postFetch();
+            renderAPost(post);
+            renderEveryPost();
+            await createAPost(post);
+            render();
         })
 
 
@@ -309,8 +436,10 @@
 
 
 /* THIS IS TO REDIRECT GUESTS TO THE index.html (Main page w/ a guest view) */
-        $('#guest-btn').click(function() {
+        $('#app').on('click', '#guest-btn', function() {
             window.location.href = '/index.html';
+            renderForms();
+            renderEveryPost();
         })
     
 /* THIS IS TO REGISTER A USER. TAKES A username and password */ /* [8/26-WORKS]
@@ -343,32 +472,17 @@
                 /* Need to change whats seen on backend, and wjhat is given in UI */
                 $('#app').empty();
                 placeToken(responseObj?.data?.token);
+                render();
+                renderForms();
+                renderEveryPost();
                 window.location.href = '/index.html';
-                /* render(); */
-                
             } catch(error) {
                 console.error(error);
             }
         }
-    
-/* THIS IS A HELPER FUNCTION FOR SUCCESS/ERROR MESSAGES UPON REGISTERING */
-// [8/29] - incomplete, meant for use in BACKEND only
-            // const registerMessages = () => {
-        //     $('#app').empty();
-
-        //     const registrationError = "Registration unsuccessful.  Try Again.";
-        //     const registerSuccess = "Registration successful!  Welcome to the community!";
-
-
-/* THIS IS FOR THE MODAL THAT APPEARS WHEN YOU REGISTER A USER */
-            
-
-            
 
 /* THIS IS FOR WHEN A USER ALREADY HAS AN ACCT AND LOGS IN . TAKES A username and password */
 /* [8/26-WORKS] */
-
-
     /* we send in the username and password & get back the token */
         const loginUser = async (username, password) => {
             try {
@@ -388,6 +502,9 @@
                 /* We can set the token in local storage for auto login */
                 /* set up conditional to aleart user in UI if login is successful or not */
                 placeToken(responseObj?.data?.token);
+                render();
+                renderForms();
+                renderEveryPost();
                 window.location.href = '/index.html';
             } catch(error) {
                 console.error(error)
@@ -403,6 +520,7 @@
             }
         }
         isLoggedIn();
+        
 
 /* THIS IS FOR DISPLAYING USER'S NAME IN THE NAVBAR WHEN LOGGED IN */
     /* [8/31] - Need to create a dropdown that displays 'LogOut' button */
@@ -414,6 +532,7 @@
         const logOut = () => {
             localStorage.removeItem('token');
             state.token = '';
+            render();
         }
 
 /* THIS IS FOR LOGGING OUT ON CLICKING NAV BAR ' LOGOUT ' */
@@ -424,6 +543,7 @@
            logOut();
            alert("Thank you for logging out");
            window.location.href = '/landing.html';
+           render();
        } );
 
 /* THIS IS TO CALL USERS/ME ROUTE AND SET USER DATA ON STATE */
@@ -438,7 +558,8 @@
                     },
                 });
                 const responseObj = await response.json();
-                    console.log('responseObj:', responseObj);                  
+                    console.log('responseObj:', responseObj);   
+                state.responseObj = responseObj;
             } catch (error) {
                 console.error(error);
             }
@@ -458,7 +579,7 @@
         @returns {undefined}
     */
 
-    /* This is the fetch call for creating posts */
+    /* This is the fetch call for creating all posts */
     /* [8/30] - works */
         const createPost = async post => {
             try {
@@ -478,46 +599,78 @@
                 console.error(error);
             }
         }
+        
+
+    /* This is the fetch call for creating a single post */
+    /* [8/30] - works */
+    const createAPost = async post => {
+        try {
+            const response = await fetch(`${API_URL}/posts`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${state.token}`
+                },
+                body: JSON.stringify({post})
+            });
+            const responseObj = await response.json();
+            console.log(responseObj);
+                console.log('responseObj: ', responseObj.data.post);
+            state.posts.unshift(responseObj.data.post);
+            
+        }   catch (error) {
+            console.error(error);
+        }
+    }
+
     
 /* THIS IS FOR RENDERING POSTS */
     /* [9/1] - cards add on click, though need to attach data */
-    const renderPosts = (post) => {
-        function createPostCard () {
-            
+    const renderAPost = (post) => {
             const postCreator = $(`
-            <div class="card" style="width: 18rem;">
+            <div id="cards" class="card" style="width: 18rem;">
                 <div class="card-body">
                     <h5 class="card-title">${post.title}</h5>
-                    <h6 class="card-subtitle mb-2 text-muted">${post.price}</h6>
-                    <h6 class="card-subtitle mb-2 text-muted">${post.location}</h6>
-                    <p class="card-text">${post.description}</p>
-                    <a href="#" class="card-link">Card link</a>
-                    <a href="#" class="card-link">Another link</a>
+                    <h6 class="card-subtitle mb-2 text-muted">Price: ${post.price}</h6>
+                    <h6 class="card-subtitle mb-2 text-muted">Location: ${post.location}</h6>
+                    <p class="card-text"> Description: ${post.description}</p>
+                    <button type="button" class="btn btn-success">Message Author</button>
                 </div>
             </div>`)
 
-            $('#postCards').append(postCreator);
-            
+            $('#postCards').prepend(postCreator);
+    }
+  
+    const renderPosts = (post) => {
+        return $(`
+                <div id="cards" class="card" style="width: 18rem;">
+                    <div class="card-body">
+                        <h2 class="card-title">${post.author.username}</h2>
+                        <h5 class="card-title">${post.title}</h5>
+                        <h6 class="card-subtitle mb-2 text-muted">Price: ${post.price}</h6>
+                        <h6 class="card-subtitle mb-2 text-muted">Location: ${post.location}</h6>
+                        <p class="card-text"> Description: ${post.description}</p>
+                        <button type="button" class="btn btn-success">Message Author</button>
+                    </div>
+                </div>`)
+    }
+
+
+/* THIS RENDERS EVERY POST IN EXISTENCE ON THE API */
+        const renderEveryPost = () => {
+            const appendPosts = $('#postCards');
+            postFetch();
+            state.posts.forEach(post => {
+                appendPosts.append(renderPosts(post))
+            })
         }
 
-        $('#createPost-Btn').click(function(event) {
-                    event.preventDefault();
-                    console.log('clicked Create');
-                    createPostCard();
-        })
-    }
-    /* renderPosts(); */
-
-    const postObj = {
-
-    }
-    
     
 /* THIS FUNCTION FETCHES POSTS */
     /* [8/30]- works */
         const postFetch = async () => {
             const {data} = await (await fetch(`${API_URL}/posts`)).json();
-                console.log('data: ', data);
+                /* console.log('data: ', data); */
             state.posts = data.posts;
         }
 
@@ -530,7 +683,7 @@
         @param {string} content - message content
         @returns {undefined}
     */
-        /* const createMessage = async (postId, content) => {
+        const createMessage = async (postId, content) => {
             try {
                 const response = await fetch(`${API_URL}/posts/${post._id}/messages`, {
                     method: 'POST',
@@ -546,12 +699,40 @@
                 });
                 const responseObj = await response.json();
                     console.log('responseObj: ', responseObj.data.postId);
-                state.posts.push(responseObj.data.postId);
+                state.posts.messages.push(responseObj.data.postId);
             }   catch (error) {
                 console.error(error);
             }
-        } */
+        }
     
+/* THIS IS FOR DISPLAYING MESSAGES THAT THE USER HAS */
+        /* need to create a card formatted for the messages */
+
+        /* $('#parentNav').on('click', '#messages-btn', async function() {
+            try {
+                await fetchUserData();
+                const messages = state.responseObj.messages;
+                $('#postCards').empty();
+                $('#postCards').append(messages.map(renderMessageCards));
+            } catch (error) {
+                console.log(error);
+            }
+        }) */
+
+        const renderMessageCards = (post) => {
+            return $(`
+                    <div id="message-cards" class="card" style="width: 18rem;">
+                        <div class="message-body">
+                            <h2 class="card-title">${post.author.username}</h2>
+                            <h5 class="card-title">${post.title}</h5>
+                            <h6 class="card-subtitle mb-2 text-muted">Price: ${post.price}</h6>
+                            <h6 class="card-subtitle mb-2 text-muted">Location: ${post.location}</h6>
+                            <p class="card-text"> Description: ${post.description}</p>
+                            <button type="button" class="btn btn-success">Message Author</button>
+                        </div>
+                    </div>`)
+        }
+
     
 /* THIS IS FOR DELETING POSTS- SETTING isActive to false */
         /* [8/30] - Works */
@@ -577,6 +758,36 @@
                 console.error(error);
             }
         }
+
+/* THIS IS FOR THE DELETE BUTTON */
+/* append it to #cards if post.author.isAuthor === true */
+/* Need to loop through state.posts[] -> that array contains all the posts */
+        // function renderDeleteBtn () {
+        //     const deleteBtn = $(`<button type="button" class="btn btn-danger">Delete</button>`);
+        //     for (var i = 0; i < state.posts.length; i++) {
+        //         if(state.posts[i].isAuthor === true) {
+        //             $('#postCards').append(deleteBtn);
+        //         }
+        //         /* console.log(state.posts[i]._id) */
+        //     }
+        //     /* const innerCard = posts;
+        //     console.log(innerCard); */
+        // }
+      
+
+        /* const renderEveryPost = () => {
+            const appendPosts = $('#postCards');
+            postFetch();
+            state.posts.forEach(post => {
+                appendPosts.append(renderPosts(post))
+            })
+        }
+ */
+        $('#app2').on('click', '.btn-danger', function() {
+            const theCard = $(this);
+            console.log('clicked delete');
+            
+        })
 
     
 /* THIS IS FOR PATCHING/UPDATING YOUR POSTS */
@@ -606,7 +817,20 @@
             }
         }
     
-    
+
+/* THIS IS FOR FILTERING THROUGH THE POSTS */
+        $('#appNav').on('submit', '.search-form', function(event){
+            event.preventDefault();
+            const searchInput = $(this).find('input').val();
+            const searchFiltered = state.posts.filter(function(post){ 
+            return post.description.toLowerCase().includes(searchInput.toLowerCase())|| post.title.toLowerCase().includes(searchInput.toLowerCase())||
+            post.price.toLowerCase().includes(searchInput.toLowerCase())||
+            post.author.username.toLowerCase().includes(searchInput.toLowerCase());
+        });
+            $('#app2').find('#postCards').empty();
+            $('#app2').find('#postCards').append(searchFiltered.map(renderPosts));
+        });
+
     
 /* THIS IS A WRAPPER FOR ALL OF OUR FUNCTIONS (A 'BOOTSTRAP') */
 
@@ -614,11 +838,20 @@
         /* why would I use an asynchronous func here? */
         const allTheFuncs = async () => {
             const app = $('#app');
+            const app2 = $('#postCards');
+            app.empty();
+            app2.empty();
+            render();
             retrieveToken();
-                console.log('state.token: ', state.token);
+            try {
+                await postFetch();
             navRender();
             renderForms();
-            render();
+            renderEveryPost();
+            /* renderDeleteBtn(); */
+            } catch(error) {
+                console.error(error);
+            }
             /* app.append(renderPost()); */
             
         }
