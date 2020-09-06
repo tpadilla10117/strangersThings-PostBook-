@@ -17,8 +17,16 @@
   display: flex;
   flex-wrap: wrap;
   padding: 2rem;
-
 }
+
+#cards {
+  margin: 5px;
+}
+
+.inactive {
+  display: none;
+}
+
 
 
 /* #mainNav{
