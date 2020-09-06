@@ -23,18 +23,23 @@
   margin: 5px;
 }
 
-.inactive {
-  display: none;
-}
-
 .card-title {
   color: rgb(9, 149, 173);
   border-color: black;
 }
 
-#messageBtn {
+#messageBtn,.new-messageBtn {
   background-color: rgb(9, 149, 173);
   border-color: white;
+  color: white
+}
+
+#send-message {
+  justify-content: center;
+}
+
+.inactive {
+  display: none;
 }
 
 #postbook, #postbook2 {
