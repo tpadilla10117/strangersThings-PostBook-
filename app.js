@@ -598,8 +598,17 @@
                         <p class="card-text"> Description: ${post.description}</p>
                         ${post.isAuthor ? '<button type="button" id="editCard" class="btn btn-info" data-toggle="modal" data-target="#editModal">Edit</button>' : ''}
                         </div>
-                        ${post.isAuthor ? '<button type="button" id="deleteCard" class="btn btn-danger">Delete</button>' : '<button type="button" id="messageCard" class="btn btn-success">Message Author</button>'}
+                        ${post.isAuthor ? '<button type="button" id="deleteCard" class="btn btn-danger">Delete</button>' : '<button type="button" id="messageBtn" class="btn btn-success">Message Author</button>'}
+                        <div id="messageFormHolder">
+                            <form id="send-message" class="inactive">
+                                <div class="make-title">
+                                    <label for="formGroupExampleInput">Send A Message To Author:</label>
+                                    <input type="text" class="form-control" id="write-message" placeholder="Write A Message">
+                                </div>
+                                <button class="new-messageBtn" type="submit">Send Message</button>
+                            </form>
                         </div>
+                    </div>
                 </div>`).data('post', post);
     }
 
@@ -650,6 +659,17 @@
                 console.error(error);
             }
         }
+
+/* THIS IS TO Toggle A MESSAGE FORM ON THE CLICK OF ' MESSAGE AUTHOR ' */
+
+        $('#app2').on('click', '#messageBtn', async function(event) {
+            const card = $(this).closest('#cards');
+            const containerSearch = card.find('#messageFormHolder form');
+            containerSearch.toggleClass('inactive');
+
+        })
+
+
     
 /* THIS IS FOR DISPLAYING MESSAGES THAT THE USER HAS */
         /* need to create a card formatted for the messages */
