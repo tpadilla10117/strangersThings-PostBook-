@@ -49,18 +49,13 @@
         const navRender = () => {
             const authenticNav = $(`<nav id="mainNav2" class="navbar navbar-expand-lg navbar-light bg-light">
 
-            <a class="navbar-brand" href="#">Navbar</a>
+            <a id="postbook" class="navbar-brand" href="#">PostBook</a>
             <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
               <span class="navbar-toggler-icon"></span>
             </button>
           
             <div class="collapse navbar-collapse" id="navbarSupportedContent">
               <ul class="navbar-nav mr-auto">
-                <li class="nav-item active">
-                  
-                    <a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>
-                  
-                </li>
                 <li class="nav-item">
                   <div id="createPost-btn" data-toggle="modal" data-target="#createPostModal2">
                     <a class="nav-link" href="#">Create Post</a>
@@ -89,18 +84,13 @@
         
             const unauthenticNav = $(`<nav id="mainNav" class="navbar navbar-expand-lg navbar-light bg-light">
 
-            <a class="navbar-brand" href="#">Navbar</a>
+            <a id="postbook2" class="navbar-brand" href="#">PostBook</a>
             <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
               <span class="navbar-toggler-icon"></span>
             </button>
           
             <div class="collapse navbar-collapse" id="navbarSupportedContent">
               <ul class="navbar-nav mr-auto">
-                <li class="nav-item active">
-                    
-                        <a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>
-                   
-                </li>
                 <li class="nav-item">
                   <div id="mainRegister-btn" data-toggle="modal" data-target="#registerModalMain">
                     <a class="nav-link" href="#">Register</a>
@@ -125,19 +115,52 @@
                 `<div class="alert alert-success fade show" role="alert"><strong>You Are Logged In!</strong> Check Out the Listings Below!<button type="button" class="close" data-dismiss="alert" aria-label="Close">
                 <span aria-hidden="true">&times;</span>
               </button></div>`);
-            /* [9/3] -> Need to add functionaloty to home button */
+
+              const unauthenticBanner = $(
+                `<div class="alert alert-warning fade show" role="alert"><strong>Guest View!</strong> Register or Login To Create a Post & Interact With other Users!!!<button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button></div>`);
+
             if(state.token) {
               $('#appNav').append(authenticNav);
               $('#alertBanner').append(loginBanner);
             } else if (state.token === '' || state.token === null) {
                 $('#appNav').append(unauthenticNav);
+                $('#alertBanner').append(unauthenticBanner);
             }
 
-           /*  $('.home-btn').click(function () {
-                console.log('home')    
-            }) */
-            
         }
+/* THIS IS FOR THE RE-RENDER ON CLICK OF ' PostBook '  IN THE NAV */
+            $('#parentNav').on('click', '#postbook', async function () {
+                console.log('clicked');
+                $('#appNav').empty();
+                render();
+                retrieveToken();
+                try {
+                    await $('#postcards').empty();
+                    navRender();
+                    await postFetch();
+                    await fetchUserData();
+                    renderEveryPost();
+                } catch (error) {
+                    console.log(error);
+                }
+            })
+
+        /* This is for a re-render of the unauthentic user view in the UI */
+            $('#parentNav').on('click', '#postbook2', async function () {
+                console.log('clicked');
+                $('#appNav').empty();
+                render();
+                try {
+                    await $('#postcards').empty();
+                    navRender();
+                    await postFetch();
+                    UnauthRenderEveryPost();
+                } catch (error) {
+                    console.log(error);
+                }
+            })
 
 /* THIS IS A RENDER FOR THE Forms*/
         const renderForms = () => {
@@ -603,11 +626,25 @@
                             <form id="send-message" class="inactive">
                                 <div class="make-title">
                                     <label for="formGroupExampleInput">Send A Message To Author:</label>
-                                    <input type="text" class="form-control" id="write-message" placeholder="Write A Message">
+                                    <input type="text" class="form-control" id="newMessage" placeholder="Write A Message">
                                 </div>
                                 <button class="new-messageBtn" type="submit">Send Message</button>
                             </form>
                         </div>
+                    </div>
+                </div>`).data('post', post);
+    }
+
+/* THIS IS THE U.I. RENDER FOR UNAUTHENTIC USERS */
+    const UnauthRenderPosts = (post) => {
+        return $(`
+                <div id="cards" class="card" style="width: 18rem;">
+                    <div class="card-body">
+                        <h2 class="card-title">${post.author.username}</h2>
+                        <h5 class="card-title">${post.title}</h5>
+                        <h6 class="card-subtitle mb-2 text-muted">Price: ${post.price}</h6>
+                        <h6 class="card-subtitle mb-2 text-muted">Location: ${post.location}</h6>
+                        <p class="card-text"> Description: ${post.description}</p>
                     </div>
                 </div>`).data('post', post);
     }
@@ -618,6 +655,14 @@
             postFetch();
             state.posts.forEach(post => {
                 prependPosts.prepend(renderPosts(post))
+            })
+        }
+/* THIS RENDERS JUST THE POSTS WITH NO BUTTONS -> FOR THE UNAUTHERIZED VIEW */
+        const UnauthRenderEveryPost = () => {
+            const prependPosts = $('#postCards');
+            postFetch();
+            state.posts.forEach(post => {
+                prependPosts.prepend(UnauthRenderPosts(post))
             })
         }
 
@@ -669,6 +714,44 @@
 
         })
 
+/* THIS IS FOR LISTENING TO VALUES ON THE NESTED MESSAGE BUTTON */
+
+        $('#postCards').on('submit', '#send-message', async function(event) {
+            event.preventDefault();
+            const target = $(this).closest('#cards');
+            const cardData = target.data('post');
+            console.log(cardData._id);
+            const submittedValues = target.find('#newMessage').val();
+            console.log(submittedValues);
+            await createMessage(cardData._id, submittedValues); 
+            /* target.find('#newMessage').val(''); */
+        })
+
+/* THIS IS TO VIEW MESSAGES THAT ARE SENT TO A POST */
+        function accessPostMessages () {
+            const thePosts = state.posts;
+            for(var i = 0; i < thePosts.length; i++) {
+                console.log(thePosts[i].messages);
+            }
+        }
+
+        /* function revealMessagesOnPost(messages) {
+            console.log('messages:', messages)
+            return $(`
+              <p class="my-messages">${messages.fromUser.username}</p>
+              <p class="my-messages">${messages.content}</p>
+              `)
+        } */
+
+
+        /* function showPostsMessage(messages){
+            console.log('messages', messages)
+            // const {fromUser:{username}, content} = messages
+              return $(`
+              <p class="my-messages">${messages.fromUser.username}</p>
+              <p class="my-messages">${messages.content}</p>
+              `)
+          } */
 
     
 /* THIS IS FOR DISPLAYING MESSAGES THAT THE USER HAS */
@@ -741,7 +824,6 @@
                     console.error(error);
                 }   
         })
-
     
 /* THIS IS FOR PATCHING/UPDATING YOUR POSTS */
 
@@ -835,8 +917,13 @@
             post.price.toLowerCase().includes(searchInput.toLowerCase())||
             post.author.username.toLowerCase().includes(searchInput.toLowerCase());
         });
+        if(state.token) {
             $('#app2').find('#postCards').empty();
             $('#app2').find('#postCards').append(searchFiltered.map(renderPosts));
+        } else if (!state.token) {
+            $('#app2').find('#postCards').empty();
+            $('#app2').find('#postCards').append(searchFiltered.map(UnauthRenderPosts));
+        }
         });
   
 /* THIS IS A WRAPPER FOR ALL OF OUR FUNCTIONS (A 'BOOTSTRAP') */
@@ -852,7 +939,11 @@
                 await postFetch();
             navRender();
             renderForms();
-            renderEveryPost();
+            if(state.token) {
+                renderEveryPost();
+            } else if (!state.token) {
+                UnauthRenderEveryPost();
+            }
             } catch(error) {
                 console.error(error);
             }
