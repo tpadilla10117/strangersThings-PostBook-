@@ -7,8 +7,7 @@
             token: '',
             responseObj: {},
             posts: [],
-            searchTerm: '',
-            user: {},
+            messages: [],
         };
 
 /* THIS IS THE makeHeaders() FUNCTION USED IN API REQUESTS */
@@ -48,7 +47,6 @@
 
 /* THIS IS TO RENDER NAV MENUS FOR AUTHETICATED OR UNAUTHENTICATED USERS */
         const navRender = () => {
-            /* let currentUser = ; */
             const authenticNav = $(`<nav id="mainNav2" class="navbar navbar-expand-lg navbar-light bg-light">
 
             <a class="navbar-brand" href="#">Navbar</a>
@@ -85,7 +83,7 @@
                 <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
               </form>
             </div>
-    
+
             </nav>`);
         
         
@@ -123,9 +121,14 @@
     
             </nav>`)
             
+            const loginBanner = $(
+                `<div class="alert alert-success fade show" role="alert"><strong>You Are Logged In!</strong> Check Out the Listings Below!<button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button></div>`);
             /* [9/3] -> Need to add functionaloty to home button */
             if(state.token) {
               $('#appNav').append(authenticNav);
+              $('#alertBanner').append(loginBanner);
             } else if (state.token === '' || state.token === null) {
                 $('#appNav').append(unauthenticNav);
             }
@@ -139,8 +142,6 @@
 /* THIS IS A RENDER FOR THE Forms*/
         const renderForms = () => {
 
-            /* THIS WORKS BUT NEED TO STYLE & ADJUST SYNTAX (CLASSES, IDS, ETC) */
-            /* [8/30] ALSO NEED TO SETUP FOR REGISTER */
             function landingLoginModal() {
                 $('#loginLanding').empty();
                 const loginModal = $(`<div class="modal fade modal-dialog modal-dialog-centered" id="loginModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
@@ -339,7 +340,6 @@
 
 
         /* This is for the Main Page ' Create Post ' button */
-        /* 9/1 - Need to read values from the form*/
         function createPostModal() {
             $('.postForm').empty();
             const postModal = $(`<div class="modal fade modal-dialog modal-dialog-centered" id="createPostModal2" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
@@ -402,33 +402,28 @@
             post.price = $('#priceSubmission').val();
             post.location = $('#locationSubmission').val();
             post.description = $('#exampleFormControlTextarea1').val();
-            $('#createPostModal2').addClass("goodbyeModal");
-            /* const theNewPost = {location: locationSubmission, title: itemSubmission, price: priceSubmission, description: descripSubmission}; */
-            $('#postCards').empty();
+            /* $('#createPostModal2').addClass("goodbyeModal"); */
            /*  $('.modal-backdrop').remove(); */
+            await createPost(post);
+            $('#postCards').empty();
             await postFetch();
-            renderAPost(post);
+            await fetchUserData();
+            /* thePrepender(post); */
             renderEveryPost();
-            await createAPost(post);
             render();
         })
-
-
     }
 
          
 /* THIS IS TO PLACE A TOKEN IN localStorage AND/OR SAVE IT TO state.token */
-/* [8/31 - will persist token in localStorage, but need to update handlers on forms */
+    //save it to state.token -> we do this to be mindful of refresh
         const placeToken = (token) => {
-            //set the token as 'token' in localStorage
+            
             localStorage.setItem('token', token);
             state.token = token;
-            //save it to state.token -> we do this to be mindful of
-
         }
 
 /* THIS IS TO GET A TOKEN FROM localStorage OR STATE */
-/* [8/26-WORKS] */
         const retrieveToken = () => {
             state.token = state.token || localStorage.getItem('token');
             return state.token;
@@ -442,10 +437,7 @@
             renderEveryPost();
         })
     
-/* THIS IS TO REGISTER A USER. TAKES A username and password */ /* [8/26-WORKS]
-    */
-    /* header --> what data type we are sending over (JSON) */
-    /* we send username and password and get back a token */
+/* THIS IS TO REGISTER A USER. TAKES A username and password */
 
         const registerUser = async (username, password) => {
 
@@ -455,8 +447,6 @@
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    /*notice how when you log it, you get a token and success*/
-                    /* You want to store the token in state */
                     body: JSON.stringify({
                         user: {
                             username: username,
@@ -468,8 +458,6 @@
                     console.log('responseObj: ', responseObj);
                     console.log('responseObj.data.token: ', responseObj.data.token);
                 state.token = responseObj.data && responseObj.data.token;
-                /* Need to add a conditional for successful login message */
-                /* Need to change whats seen on backend, and wjhat is given in UI */
                 $('#app').empty();
                 placeToken(responseObj?.data?.token);
                 render();
@@ -482,7 +470,7 @@
         }
 
 /* THIS IS FOR WHEN A USER ALREADY HAS AN ACCT AND LOGS IN . TAKES A username and password */
-/* [8/26-WORKS] */
+
     /* we send in the username and password & get back the token */
         const loginUser = async (username, password) => {
             try {
@@ -517,7 +505,7 @@
         const isLoggedIn = () => {
             if(state.token || localStorage.getItem('token') ) {
                 console.log("We are logged in");
-                alert("Thank you for logging in");
+                /* alert("Thank you for logging in"); */
             }
         }
         isLoggedIn();
@@ -528,7 +516,6 @@
 
 
 /* THIS REMOVES 'token' FROM LOCALSTORAGE AND STATE TO LOGOUT A USER */
-/* [8/26-WORKS] */
 
         const logOut = () => {
             localStorage.removeItem('token');
@@ -548,7 +535,6 @@
        } );
 
 /* THIS IS TO CALL USERS/ME ROUTE AND SET USER DATA ON STATE */
-/* [8/26-WORKS] */
     /* this is how we get the userdata back */
         async function fetchUserData () {
             try {
@@ -581,7 +567,6 @@
     */
 
     /* This is the fetch call for creating all posts */
-    /* [8/30] - works */
         const createPost = async post => {
             try {
                 const response = await fetch(`${API_URL}/posts`, {
@@ -600,52 +585,8 @@
                 console.error(error);
             }
         }
-        
 
-    /* This is the fetch call for creating a single post */
-    /* [8/30] - works */
-    const createAPost = async post => {
-        try {
-            const response = await fetch(`${API_URL}/posts`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${state.token}`
-                },
-                body: JSON.stringify({post})
-            });
-            const responseObj = await response.json();
-            console.log(responseObj);
-                console.log('responseObj: ', responseObj.data.post);
-            state.posts.unshift(responseObj.data.post);
-            
-        }   catch (error) {
-            console.error(error);
-        }
-    }
-
-    
-/* THIS IS FOR RENDERING POSTS */
-    /* [9/1] - cards add on click, though need to attach data */
-    const renderAPost = (post) => {
-            const postCreator = $(`
-            <div id="cards" class="card" style="width: 18rem;">
-                <div class="card-body">
-                    <h5 class="card-title">${post.title}</h5>
-                    <h6 class="card-subtitle mb-2 text-muted">Price: ${post.price}</h6>
-                    <h6 class="card-subtitle mb-2 text-muted">Location: ${post.location}</h6>
-                    <p class="card-text"> Description: ${post.description}</p>
-                    ${state.token ? '<button type="button" class="btn btn-info">Edit</button>' : ''}
-                    </div>
-                    ${state.token ? '<button type="button" class="btn btn-danger">Delete</button>' : ''}
-                    </div>
-
-                </div>
-            </div>`)
-
-            $('#postCards').prepend(postCreator);
-    }
-  
+/* THIS IS FOR RENDERING POSTS IN THE UI, USED WITH renderEveryPost() BELOW */
     const renderPosts = (post) => {
         return $(`
                 <div id="cards" class="card" style="width: 18rem;">
@@ -655,27 +596,23 @@
                         <h6 class="card-subtitle mb-2 text-muted">Price: ${post.price}</h6>
                         <h6 class="card-subtitle mb-2 text-muted">Location: ${post.location}</h6>
                         <p class="card-text"> Description: ${post.description}</p>
-                        <button type="button" class="btn btn-success">Message Author</button>
-                        ${post.isAuthor ? '<button type="button" id="editCard" class="btn btn-info">Edit</button>' : ''}
+                        ${post.isAuthor ? '<button type="button" id="editCard" class="btn btn-info" data-toggle="modal" data-target="#editModal">Edit</button>' : ''}
                         </div>
-                        ${post.isAuthor ? '<button type="button" id="deleteCard" class="btn btn-danger">Delete</button>' : ''}
+                        ${post.isAuthor ? '<button type="button" id="deleteCard" class="btn btn-danger">Delete</button>' : '<button type="button" id="messageCard" class="btn btn-success">Message Author</button>'}
                         </div>
-                </div>`)
+                </div>`).data('post', post);
     }
-
 
 /* THIS RENDERS EVERY POST IN EXISTENCE ON THE API */
         const renderEveryPost = () => {
-            const appendPosts = $('#postCards');
+            const prependPosts = $('#postCards');
             postFetch();
             state.posts.forEach(post => {
-                appendPosts.append(renderPosts(post))
+                prependPosts.prepend(renderPosts(post))
             })
         }
 
-    
-/* THIS FUNCTION FETCHES POSTS */
-    /* [8/30]- works */
+/* THIS FUNCTION FETCHES POSTS & ALLOWS isAuthor KEY TO HAVE A BOOLEAN TRUE FOR CURRENT USER */
         const postFetch = async () => {
             const {data} = await (await fetch(`${API_URL}/posts`, {
                 headers: makeHeaders()
@@ -683,8 +620,6 @@
                 console.log('data: ', data);
             state.posts = data.posts;
         }
-
-       
     
 /* THIS IS FOR CREATING NEW MESSAGES FOR POSTS */
         /* [8/30] - incomplete, need to figure out where to store */
@@ -696,7 +631,7 @@
     */
         const createMessage = async (postId, content) => {
             try {
-                const response = await fetch(`${API_URL}/posts/${post._id}/messages`, {
+                const response = await fetch(`${API_URL}/posts/${postId}/messages`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -704,13 +639,13 @@
                     },
                     body: JSON.stringify({
                         message: {
-                            content: content,
+                            content,
                         }
                     })
                 });
                 const responseObj = await response.json();
-                    console.log('responseObj: ', responseObj.data.postId);
-                state.posts.messages.push(responseObj.data.postId);
+                    console.log('responseObj: ', responseObj);
+                state.messages.push({postId, content});
             }   catch (error) {
                 console.error(error);
             }
@@ -746,7 +681,6 @@
 
     
 /* THIS IS FOR DELETING POSTS- SETTING isActive to false */
-        /* [8/30] - Works */
     /* postId is the post that will be deleted */
         /** 
         @param {string} postId
@@ -772,18 +706,25 @@
 
 /* THIS IS FOR THE DELETE BUTTON */
      
-        $('#app2').on('click', '#deleteCard', function() {
-            const theCard = $(this);
+        $('#app2').on('click', '#deleteCard', async function() {
+            const theCard = $(this).closest('#cards');
             console.log('clicked delete');
-            for(var i = 0; i < state.posts.length; i++) {
-                const theCardId = state.posts[i]._id;
-                /* deletePost(); */
-            }
+            console.log(theCard.data('post')._id);
+                const theCardId = theCard.data('post')._id;
+                 try { 
+                    await deletePost(theCardId); 
+                    theCard.slideUp();
+                    await postFetch();
+                    $('#postCards').empty()
+                    renderEveryPost();
+                 } catch (error) {
+                    console.error(error);
+                }   
         })
 
     
 /* THIS IS FOR PATCHING/UPDATING YOUR POSTS */
-        /* [8/30] - works */
+
     /* These are the parameter requests for editPost function : */
     /**
      * @param {Object} post - post details
@@ -811,11 +752,12 @@
 
 /* THIS IS TO RENDER A MODAL FOR EDITING POSTS */
         const editModalRender = () => {
-            $(`<div class="modal fade modal-dialog modal-dialog-centered" id="editModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            $('#editModalContainer').empty();
+            const editModalContainer = $(`<div class="modal fade modal-dialog modal-dialog-centered" id="editModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
             <div class="modal-dialog">
                 <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="exampleModalLabel">Create a Listing</h5>
+                    <h5 class="modal-title" id="exampleModalLabel">Edit Your Post</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                     </button>
@@ -853,6 +795,8 @@
                 </div>
             </div>
             </div>`)
+
+            $("#editModalContainer").append(editModalContainer);
         }
 
 /* THIS IS FOR THE ON CLICK OF AN EDIT BUTTON */
@@ -862,7 +806,6 @@
             editModalRender();
         }) 
     
-
 /* THIS IS FOR FILTERING THROUGH THE POSTS */
         $('#appNav').on('submit', '.search-form', function(event){
             event.preventDefault();
@@ -875,12 +818,9 @@
             $('#app2').find('#postCards').empty();
             $('#app2').find('#postCards').append(searchFiltered.map(renderPosts));
         });
-
-    
+  
 /* THIS IS A WRAPPER FOR ALL OF OUR FUNCTIONS (A 'BOOTSTRAP') */
 
-        /* What else do I have to put in here? */
-        /* why would I use an asynchronous func here? */
         const allTheFuncs = async () => {
             const app = $('#app');
             const app2 = $('#postCards');
@@ -896,7 +836,5 @@
             } catch(error) {
                 console.error(error);
             }
-
-            
         }
         allTheFuncs();
