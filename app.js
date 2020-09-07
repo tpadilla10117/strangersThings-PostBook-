@@ -47,7 +47,7 @@
 
 /* THIS IS TO RENDER NAV MENUS FOR AUTHETICATED OR UNAUTHENTICATED USERS */
         const navRender = () => {
-            const authenticNav = $(`<nav id="mainNav2" class="navbar navbar-expand-lg navbar-light bg-light">
+            const authenticNav = $(`<nav id="mainNav2" class="navbar navbar-expand-lg navbar-light bg-light sticky-top">
 
             <a id="postbook" class="navbar-brand" href="#">PostBook</a>
             <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
@@ -611,7 +611,7 @@
 
 /* THIS IS FOR RENDERING POSTS IN THE UI, USED WITH renderEveryPost() BELOW */
     const renderPosts = (post) => {
-        return $(`
+        const postElement =  $(`
                 <div id="cards" class="card" style="width: 18rem;">
                     <div class="card-body">
                         <h2 class="card-title">${post.author.username}</h2>
@@ -619,20 +619,26 @@
                         <h6 class="card-subtitle mb-2 text-muted">Price: ${post.price}</h6>
                         <h6 class="card-subtitle mb-2 text-muted">Location: ${post.location}</h6>
                         <p class="card-text"> Description: ${post.description}</p>
-                        ${post.isAuthor ? '<button type="button" id="editCard" class="btn btn-info" data-toggle="modal" data-target="#editModal">Edit</button>' : ''}
+                        ${post.isAuthor ? '<button type="button" id="editCard" class="btn btn-info btn-lg" data-toggle="modal" data-target="#editModal">Edit</button>' : ''}
                         </div>
-                        ${post.isAuthor ? '<button type="button" id="deleteCard" class="btn btn-danger">Delete</button>' : '<button type="button" id="messageBtn" class="btn btn-success">Message Author</button>'}
+                        ${post.isAuthor ? '<div id="displayMsg">Messages: </div> <button type="button" id="deleteCard" class="btn btn-danger">Delete</button>' : '<button type="button" id="messageBtn" class="btn btn-success">Message Author</button>'}
                         <div id="messageFormHolder">
                             <form id="send-message" class="inactive">
                                 <div class="make-title">
                                     <label for="formGroupExampleInput">Send A Message To Author:</label>
                                     <input type="text" class="form-control" id="newMessage" placeholder="Write A Message">
                                 </div>
-                                <button class="new-messageBtn" type="submit">Send Message</button>
+                                <button class="new-messageBtn btn-lg" type="submit">Send Message</button>
                             </form>
                         </div>
                     </div>
                 </div>`).data('post', post);
+
+                if(post.isAuthor) {
+                    /* console.log(postElement.find('#displayMsg')); */
+                    postElement.find('#displayMsg').append(renderCardMessage(post.messages));
+                }
+                return postElement;
     }
 
 /* THIS IS THE U.I. RENDER FOR UNAUTHENTIC USERS */
@@ -728,60 +734,20 @@
         })
 
 /* THIS IS TO VIEW MESSAGES THAT ARE SENT TO A POST */
-        function accessPostMessages () {
-            const thePosts = state.posts;
-            for(var i = 0; i < thePosts.length; i++) {
-                console.log(thePosts[i].messages);
-            }
+
+        function revealMessagesOnPost(message) {
+            /* console.log('messages:', message) */
+            return $(`
+              <p class="fellow-user">User: ${message.fromUser.username}</p>
+              <p class="fellow-user-msg">Comment: ${message.content}</p>
+              `);
         }
 
-        /* function revealMessagesOnPost(messages) {
-            console.log('messages:', messages)
-            return $(`
-              <p class="my-messages">${messages.fromUser.username}</p>
-              <p class="my-messages">${messages.content}</p>
-              `)
-        } */
-
-
-        /* function showPostsMessage(messages){
-            console.log('messages', messages)
-            // const {fromUser:{username}, content} = messages
-              return $(`
-              <p class="my-messages">${messages.fromUser.username}</p>
-              <p class="my-messages">${messages.content}</p>
-              `)
-          } */
-
-    
-/* THIS IS FOR DISPLAYING MESSAGES THAT THE USER HAS */
-        /* need to create a card formatted for the messages */
-
-        /* $('#parentNav').on('click', '#messages-btn', async function() {
-            try {
-                await fetchUserData();
-                const messages = state.responseObj.messages;
-                $('#postCards').empty();
-                $('#postCards').append(messages.map(renderMessageCards));
-            } catch (error) {
-                console.log(error);
-            }
-        }) */
-
-        const renderMessageCards = (post) => {
-            return $(`
-                    <div id="message-cards" class="card" style="width: 18rem;">
-                        <div class="message-body">
-                            <h2 class="card-title">${post.author.username}</h2>
-                            <h5 class="card-title">${post.title}</h5>
-                            <h6 class="card-subtitle mb-2 text-muted">Price: ${post.price}</h6>
-                            <h6 class="card-subtitle mb-2 text-muted">Location: ${post.location}</h6>
-                            <p class="card-text"> Description: ${post.description}</p>
-                            <button type="button" class="btn btn-success">Message Author</button>
-                        </div>
-                    </div>`)
+        function renderCardMessage(messages) {
+            return messages.map(function (theMessage) {
+                return revealMessagesOnPost(theMessage);
+            })
         }
-
     
 /* THIS IS FOR DELETING POSTS- SETTING isActive to false */
     /* postId is the post that will be deleted */
