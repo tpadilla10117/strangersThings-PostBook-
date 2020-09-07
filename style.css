@@ -5,6 +5,15 @@
     box-sizing: border-box;
   }
 
+/* THIS IS STYLING FOR THE NAVS: */
+    #postbook, #postbook2 {
+      color: rgb(9, 149, 173);
+    }
+
+    #postbook:hover, #postbook2:hover {
+      opacity: 70%;
+    }
+
 #createPostModal {
   z-index: 1050;
 }
@@ -13,39 +22,37 @@
   display: none;
 }
 
-#postCards {
-  display: flex;
-  flex-wrap: wrap;
-  padding: 2rem;
-}
+/* THIS IS STYLING FOR THE CARDS: */
+    #postCards {
+      display: flex;
+      flex-wrap: wrap;
+      padding: 1rem 7.5rem 7.5rem 7.5rem;
+    }
 
-#cards {
-  margin: 5px;
-}
+    #cards {
+      margin: 5px;
+    }
 
-.card-title {
-  color: rgb(9, 149, 173);
-  border-color: black;
-}
+    .card-title {
+      color: rgb(9, 149, 173);
+      border-color: black;
+    }
 
-#messageBtn,.new-messageBtn {
-  background-color: rgb(9, 149, 173);
-  border-color: white;
-  color: white
-}
+    #messageBtn,.new-messageBtn {
+      background-color: rgb(9, 149, 173);
+      border-color: white;
+      color: white
+    }
 
-#send-message {
-  justify-content: center;
-}
+    #send-message {
+      justify-content: center;
+    }
 
-.inactive {
-  display: none;
-}
+    #displayMsg {
+      padding: 1rem;
+    }
 
-#postbook, #postbook2 {
-  color: rgb(9, 149, 173);
-}
+    .inactive {
+      display: none;
+    }
 
-#postbook:hover, #postbook2:hover {
-  opacity: 70%;
-}
