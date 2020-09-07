@@ -8,6 +8,7 @@
             responseObj: {},
             posts: [],
             messages: [],
+            edit: {},
         };
 
 /* THIS IS THE makeHeaders() FUNCTION USED IN API REQUESTS */
@@ -82,7 +83,7 @@
             </nav>`);
         
         
-            const unauthenticNav = $(`<nav id="mainNav" class="navbar navbar-expand-lg navbar-light bg-light">
+            const unauthenticNav = $(`<nav id="mainNav" class="navbar navbar-expand-lg navbar-light bg-light sticky-top">
 
             <a id="postbook2" class="navbar-brand" href="#">PostBook</a>
             <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
@@ -425,15 +426,13 @@
             post.price = $('#priceSubmission').val();
             post.location = $('#locationSubmission').val();
             post.description = $('#exampleFormControlTextarea1').val();
-            /* $('#createPostModal2').addClass("goodbyeModal"); */
-           /*  $('.modal-backdrop').remove(); */
             await createPost(post);
             $('#postCards').empty();
             await postFetch();
             await fetchUserData();
-            /* thePrepender(post); */
             renderEveryPost();
             render();
+
         })
     }
 
@@ -494,7 +493,6 @@
 
 /* THIS IS FOR WHEN A USER ALREADY HAS AN ACCT AND LOGS IN . TAKES A username and password */
 
-    /* we send in the username and password & get back the token */
         const loginUser = async (username, password) => {
             try {
                 const response = await fetch(`${API_URL}/users/login`, {
@@ -510,9 +508,7 @@
                     })
                 })
                 const responseObj = await response.json();
-                /* We can set the token in local storage for auto login */
-                /* set up conditional to aleart user in UI if login is successful or not */
-               
+        
                 placeToken(responseObj?.data?.token);
                 render();
                 renderForms();
@@ -523,21 +519,14 @@
             }
         }
 
-/* THIS IS FOR THE MODAL THAT APPEARS WHEN YOU LOGIN A USER */
-/* [8/29] - Works - Need to find a way to display a message to User in the UI */
+/* THIS IS FOR THE DEV TO CHECK IF LOGGED IN */
         const isLoggedIn = () => {
             if(state.token || localStorage.getItem('token') ) {
                 console.log("We are logged in");
-                /* alert("Thank you for logging in"); */
             }
         }
         isLoggedIn();
         
-
-/* THIS IS FOR DISPLAYING USER'S NAME IN THE NAVBAR WHEN LOGGED IN */
-    /* [8/31] - Need to create a dropdown that displays 'LogOut' button */
-
-
 /* THIS REMOVES 'token' FROM LOCALSTORAGE AND STATE TO LOGOUT A USER */
 
         const logOut = () => {
@@ -547,9 +536,6 @@
         }
 
 /* THIS IS FOR LOGGING OUT ON CLICKING NAV BAR ' LOGOUT ' */
-/* [9/2] - Need to write */
-    /* Need to: set conditionals for successful logOut
-    - on successful logOut, redirects back to landing page */
        $('#appNav').on('click', '#logout-btn', function() {
            logOut();
            alert("Thank you for logging out");
@@ -557,8 +543,7 @@
            render();
        } );
 
-/* THIS IS TO CALL USERS/ME ROUTE AND SET USER DATA ON STATE */
-    /* this is how we get the userdata back */
+/* THIS IS TO CALL USERS/ME ROUTE AND SET USER DATA ON STATE -> we get user data back*/
         async function fetchUserData () {
             try {
                 const response = await fetch(`${API_URL}/users/me`, {
@@ -574,7 +559,6 @@
                 console.error(error);
             }
         }
-    
     
 /* THIS IS FOR CREATING POSTS */
         
@@ -635,7 +619,6 @@
                 </div>`).data('post', post);
 
                 if(post.isAuthor) {
-                    /* console.log(postElement.find('#displayMsg')); */
                     postElement.find('#displayMsg').append(renderCardMessage(post.messages));
                 }
                 return postElement;
@@ -682,11 +665,10 @@
         }
     
 /* THIS IS FOR CREATING NEW MESSAGES FOR POSTS */
-        /* [8/30] - incomplete, need to figure out where to store */
     /* These are the request parameters for messages: */
     /** 
-        @param {string} postId - where we put message
-        @param {string} content - message content
+        @param {string} postId
+        @param {string} content
         @returns {undefined}
     */
         const createMessage = async (postId, content) => {
@@ -730,13 +712,11 @@
             const submittedValues = target.find('#newMessage').val();
             console.log(submittedValues);
             await createMessage(cardData._id, submittedValues); 
-            /* target.find('#newMessage').val(''); */
         })
 
 /* THIS IS TO VIEW MESSAGES THAT ARE SENT TO A POST */
 
         function revealMessagesOnPost(message) {
-            /* console.log('messages:', message) */
             return $(`
               <p class="fellow-user">User: ${message.fromUser.username}</p>
               <p class="fellow-user-msg">Comment: ${message.content}</p>
@@ -750,7 +730,6 @@
         }
     
 /* THIS IS FOR DELETING POSTS- SETTING isActive to false */
-    /* postId is the post that will be deleted */
         /** 
         @param {string} postId
         @returns {undefined}
@@ -806,10 +785,16 @@
 
         const postEdit = async (post) => {
             try {
-            const response = await fetch(`${API_URL}/posts/${post._id}`, {
+            const response = await fetch(`${API_URL}/posts/${post}`, {
                 method: 'PATCH',
                 headers: makeHeaders(),
-                body: JSON.stringify({post})
+                body: JSON.stringify({
+                    post: {
+                        title: $('#editItem').val(),
+                        description: $('#editDescription').val(),
+                        price: $('#editPrice').val(),
+                        location: $('#editLocation').val(),
+                    }})
             });
             const data = await response.json();
                 console.log('data: ', data);
@@ -873,6 +858,36 @@
             console.log('clicked edit');
             editModalRender();
         }) 
+
+/* THIS IS TO LISTEN TO THE EDIT FORM & THEN TO RERENDER */
+        
+        $('#app2').on('click', '#editCard', function(event) {
+            const theCard = $(this).closest('#cards');
+            const theCardId = theCard.data('post')._id;
+            console.log(theCardId);
+            return state.edit = theCard.data('post');
+        });
+    
+
+        $('#app2').on('submit', '#editModalForm', async function(event) {
+            event.preventDefault();
+            const postId = state.edit._id;
+            console.log(postId);
+            /* console.log(post.title, post.price); */
+
+            /* const theEditSubmission = postId, title, price, location, description; */
+            try {
+                event.preventDefault();
+                await postEdit(postId);
+                $('#postCards').empty();
+                await postFetch();
+                await fetchUserData();
+                renderEveryPost();
+                render();
+            } catch (error) {
+                console.log(error);
+            }
+        });
     
 /* THIS IS FOR FILTERING THROUGH THE POSTS */
         $('#appNav').on('submit', '.search-form', function(event){
