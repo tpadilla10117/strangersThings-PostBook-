@@ -6,7 +6,7 @@
   }
 
 body {
-    background-color: aqua;
+    background-color: rgb(9, 149, 173);
     color: black;
     font-family: "Fjalla One", Arial;
   }
@@ -23,7 +23,6 @@ body {
 
 #side-pane {
   display: grid;
-  grid-template-columns: 1fr 1fr
+  grid-template-columns: 1fr 1fr;
 }
   
-
