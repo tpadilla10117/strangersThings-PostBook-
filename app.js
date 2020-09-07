@@ -32,15 +32,13 @@
             app.append($(`
             <aside id="side-pane"></aside>
             <section class="overlay">
-            <h1 class="animate__animated animate__wobble">Post Book</h1>
+            <h1 id="landingWobble" class="animate__animated animate__wobble">Post Book</h1>
                 <button type="button" id="landing-login" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#loginModal">Login</button>
 
                 <button type="button" id="landing-register" class="btn btn-secondary btn-lg" data-toggle="modal" data-target="#registerModal">Register</button>
 
                 <button type="button" id="guest-btn" class="btn btn-secondary btn-lg">Click to View Listings</button>
 
-                <div id="loginLanding"></div>
-                <div id="registerLanding"></div>
         </section>
         `))
         };
@@ -81,7 +79,6 @@
             </div>
 
             </nav>`);
-        
         
             const unauthenticNav = $(`<nav id="mainNav" class="navbar navbar-expand-lg navbar-light bg-light sticky-top">
 
@@ -207,7 +204,7 @@
                 landingLoginModal();
             })
 
-            $('#app').on('submit', '#loginForm', function(event) {
+            $('#loginLanding').on('submit', '#loginForm', function(event) {
                 event.preventDefault();
                 const loginSubmission = $('#loginSubmission').val();
                 const loginPassword = $('#loginPassword').val();
@@ -305,7 +302,7 @@
                 landingRegisterModal();
             })
 
-            $('#app').on('submit', '#registerForm', function(event) {
+            $('#registerLanding').on('submit', '#registerForm', function(event) {
                 event.preventDefault();
                 const registerSubmission = $('#registerSubmission').val();
                 const registerPassword = $('#registerPassword').val();
@@ -346,7 +343,6 @@
             </div>`);
 
             $('#mainRegister').append(mainRegisterContainer);
-
         }
 
         $('#mainRegister-btn').click(function(event) {
@@ -361,7 +357,6 @@
             const registerPasswordMain = $('#registerPasswordMain').val();
             registerUser(registerSubmissionMain, registerPasswordMain);
         })
-
 
         /* This is for the Main Page ' Create Post ' button */
         function createPostModal() {
@@ -415,7 +410,6 @@
         $('#createPost-btn').on('click', function(event) {
             event.preventDefault();
             console.log('clicked create post');
-            /* $('#createPostModal2').removeClass("goodbyeModal"); */
             createPostModal();
         })
 
@@ -513,7 +507,11 @@
                 render();
                 renderForms();
                 renderEveryPost();
+                if(state.token) {
                 window.location.href = '/index.html';
+                } else if(!state.token) {
+                    alert("Username Invalid");
+                }
             } catch(error) {
                 console.error(error)
             }
@@ -870,20 +868,21 @@
     
 
         $('#app2').on('submit', '#editModalForm', async function(event) {
-            event.preventDefault();
+            /* event.preventDefault(); */
+            const successBanner = $(
+                `<div class="alert alert-success fade show" role="alert"><strong>You Are Logged In!</strong> Success: Post Edited!<button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button></div>`);
             const postId = state.edit._id;
             console.log(postId);
-            /* console.log(post.title, post.price); */
-
-            /* const theEditSubmission = postId, title, price, location, description; */
             try {
-                event.preventDefault();
                 await postEdit(postId);
                 $('#postCards').empty();
                 await postFetch();
                 await fetchUserData();
-                renderEveryPost();
                 render();
+                renderEveryPost();
+                $('#alertBanner').append(successBanner);
             } catch (error) {
                 console.log(error);
             }
